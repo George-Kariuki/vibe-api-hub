@@ -3,19 +3,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import calendar
 
 app = FastAPI(
-    title="Vide APIs Hub",
+    title="Vibe API Hub",
     description=(
         "A collection of open utility APIs built for no-code and low-code platform users. "
         "Platforms like Bubble, FlutterFlow, Adalo, AppGyver, and Glide often lack the ability "
         "to generate properly formatted external URLs and handle complex data transformations. "
         "These APIs fill that gap — free to use, open to contributions.\n\n"
-        "**GitHub:** https://github.com/your-org/vide-apis-hub\n\n"
+        "**GitHub:** https://github.com/George-Kariuki/vibe-api-hub\n\n"
         "All endpoints accept JSON and return JSON. No authentication required."
     ),
     version="1.0.0",
     contact={
-        "name": "Vide APIs Hub",
-        "url": "https://github.com/your-org/vide-apis-hub",
+        "name": "Vibe API Hub",
+        "url": "https://github.com/George-Kariuki/vibe-api-hub",
     },
     license_info={
         "name": "MIT",

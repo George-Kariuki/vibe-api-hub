@@ -1,4 +1,4 @@
-# Vide APIs Hub
+# Vibe API Hub
 
 A collection of open utility APIs built for **no-code and low-code platform users**.
 
@@ -79,8 +79,8 @@ Content-Type: application/json
 
 ```bash
 # Clone and set up
-git clone https://github.com/your-org/vide-apis-hub.git
-cd vide-apis-hub
+git clone https://github.com/George-Kariuki/vibe-api-hub.git
+cd vibe-api-hub
 
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
@@ -107,7 +107,7 @@ Then open `http://localhost:8000/docs` for the interactive Swagger UI.
 ## Project Structure
 
 ```
-vide-apis-hub/
+vibe-api-hub/
 ├── api/
 │   └── index.py          # Vercel serverless entry point (Mangum adapter)
 ├── app/
