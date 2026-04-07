@@ -112,15 +112,6 @@ Then open `http://localhost:8000/docs` for the interactive Swagger UI.
 
 ---
 
-## Deploying to Vercel
-
-1. Push this repo to GitHub
-2. Import the repo in [Vercel](https://vercel.com/new)
-3. No environment variables needed for the base setup
-4. Vercel auto-detects the `vercel.json` config and deploys
-
----
-
 ## Project Structure
 
 ```
@@ -139,8 +130,6 @@ vibe-api-hub/
 ├── vercel.json
 └── README.md
 ```
-
-New API categories get their own file in `routers/` and `models/`.
 
 ---
 
