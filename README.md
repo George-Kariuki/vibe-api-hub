@@ -25,6 +25,19 @@ Interactive docs (Swagger UI): `https://your-deployment.vercel.app/docs`
 | `POST` | `/calendar/link/by-range` | Generate a Google Calendar link using start & end datetime |
 | `POST` | `/calendar/link/by-duration` | Generate a Google Calendar link using start datetime + duration in minutes |
 
+#### Request fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | ✅ | Event title |
+| `start_datetime` | string | ✅ | Start datetime (see datetime formats below) |
+| `end_datetime` | string | ✅ *by-range only* | End datetime |
+| `duration_minutes` | integer | ✅ *by-duration only* | Duration in minutes (e.g. 30, 60, 90) |
+| `timezone` | string | — | IANA timezone name. Default: `"UTC"` |
+| `details` | string | — | Event description / notes |
+| `location` | string | — | Physical address or meeting link |
+| `attendees` | array of strings | — | List of attendee email addresses to pre-fill |
+
 #### Example — By Range
 
 ```http
@@ -37,14 +50,15 @@ Content-Type: application/json
   "end_datetime": "2026-03-15T15:00:00",
   "details": "Review Q1 roadmap and finalize launch dates.",
   "location": "Conference Room A",
-  "timezone": "Africa/Nairobi"
+  "timezone": "Africa/Nairobi",
+  "attendees": ["alice@example.com", "bob@example.com"]
 }
 ```
 
 **Response:**
 ```json
 {
-  "url": "https://calendar.google.com/calendar/r/eventedit?text=Project+Sync+Meeting&dates=20260315T110000Z%2F20260315T120000Z&ctz=Africa%2FNairobi&details=Review+Q1+roadmap+and+finalize+launch+dates.&location=Conference+Room+A",
+  "url": "https://calendar.google.com/calendar/r/eventedit?text=Project+Sync+Meeting&dates=20260315T110000Z%2F20260315T120000Z&ctz=Africa%2FNairobi&details=Review+Q1+roadmap+and+finalize+launch+dates.&location=Conference+Room+A&add=alice%40example.com%2Cbob%40example.com",
   "title": "Project Sync Meeting",
   "start_utc": "2026-03-15T11:00:00+00:00",
   "end_utc": "2026-03-15T12:00:00+00:00",
@@ -64,11 +78,14 @@ Content-Type: application/json
   "duration_minutes": 60,
   "details": "Review Q1 roadmap and finalize launch dates.",
   "location": "Conference Room A",
-  "timezone": "Africa/Nairobi"
+  "timezone": "Africa/Nairobi",
+  "attendees": ["alice@example.com", "bob@example.com"]
 }
 ```
 
 **Notes:**
+- `attendees` is optional on both endpoints. Omit it or pass `null` if not needed.
+- Attendee emails are validated — each must contain `@` and a valid domain.
 - Datetime strings can include timezone offset (`+03:00`, `Z`) or be left naive — if naive, the `timezone` field is used to localise them.
 - The `timezone` field also sets the Google Calendar display timezone (`ctz`). Use IANA timezone names: `Africa/Nairobi`, `America/New_York`, `Europe/London`, `UTC`, etc.
 - Redirect your users to the returned `url` — Google Calendar opens with all fields pre-filled.
