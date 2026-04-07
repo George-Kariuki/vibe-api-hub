@@ -56,6 +56,7 @@ def build_gcal_url(
     details: str | None = None,
     location: str | None = None,
     timezone: str = "UTC",
+    attendees: list[str] | None = None,
 ) -> str:
     """Assemble and return a Google Calendar add-event URL."""
     params: dict[str, str] = {
@@ -68,6 +69,8 @@ def build_gcal_url(
         params["details"] = details
     if location:
         params["location"] = location
+    if attendees:
+        params["add"] = ",".join(attendees)
 
     return (
         "https://calendar.google.com/calendar/r/eventedit?"

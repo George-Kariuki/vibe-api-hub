@@ -44,6 +44,7 @@ async def calendar_link_by_range(body: CalendarLinkByRangeRequest) -> CalendarLi
         details=body.details,
         location=body.location,
         timezone=body.timezone,
+        attendees=body.attendees,
     )
 
     return CalendarLinkResponse(
@@ -79,6 +80,7 @@ async def calendar_link_by_duration(body: CalendarLinkByDurationRequest) -> Cale
         details=body.details,
         location=body.location,
         timezone=body.timezone,
+        attendees=body.attendees,
     )
 
     return CalendarLinkResponse(

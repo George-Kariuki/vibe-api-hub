@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 
@@ -41,6 +41,24 @@ class CalendarLinkByRangeRequest(BaseModel):
         ),
         examples=["Africa/Nairobi", "America/New_York", "Europe/London", "UTC"],
     )
+    attendees: Optional[list[str]] = Field(
+        None,
+        description="List of attendee email addresses to pre-fill on the event.",
+        examples=[["alice@example.com", "bob@example.com"]],
+    )
+
+    @field_validator("attendees")
+    @classmethod
+    def validate_attendees(cls, v: Optional[list[str]]) -> Optional[list[str]]:
+        if v is None:
+            return v
+        cleaned = [email.strip() for email in v if email.strip()]
+        if not cleaned:
+            return None
+        for email in cleaned:
+            if "@" not in email or "." not in email.split("@")[-1]:
+                raise ValueError(f"Invalid email address: '{email}'")
+        return cleaned
 
     model_config = {
         "json_schema_extra": {
@@ -51,6 +69,7 @@ class CalendarLinkByRangeRequest(BaseModel):
                 "details": "Review Q1 roadmap and finalize launch dates.",
                 "location": "Conference Room A",
                 "timezone": "Africa/Nairobi",
+                "attendees": ["alice@example.com", "bob@example.com"],
             }
         }
     }
@@ -96,6 +115,24 @@ class CalendarLinkByDurationRequest(BaseModel):
         ),
         examples=["Africa/Nairobi", "America/New_York", "Europe/London", "UTC"],
     )
+    attendees: Optional[list[str]] = Field(
+        None,
+        description="List of attendee email addresses to pre-fill on the event.",
+        examples=[["alice@example.com", "bob@example.com"]],
+    )
+
+    @field_validator("attendees")
+    @classmethod
+    def validate_attendees(cls, v: Optional[list[str]]) -> Optional[list[str]]:
+        if v is None:
+            return v
+        cleaned = [email.strip() for email in v if email.strip()]
+        if not cleaned:
+            return None
+        for email in cleaned:
+            if "@" not in email or "." not in email.split("@")[-1]:
+                raise ValueError(f"Invalid email address: '{email}'")
+        return cleaned
 
     model_config = {
         "json_schema_extra": {
@@ -106,6 +143,7 @@ class CalendarLinkByDurationRequest(BaseModel):
                 "details": "Review Q1 roadmap and finalize launch dates.",
                 "location": "Conference Room A",
                 "timezone": "Africa/Nairobi",
+                "attendees": ["alice@example.com", "bob@example.com"],
             }
         }
     }
