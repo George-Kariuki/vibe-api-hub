@@ -18,6 +18,91 @@ Interactive docs (Swagger UI): `https://your-deployment.vercel.app/docs`
 
 ## Available Endpoints
 
+### Text Utilities
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/text/regex/extract` | Extract regex matches from a string — returns first match or all matches as array |
+| `POST` | `/text/regex/replace` | Replace / redact regex matches in a string with a substitution |
+
+#### Request fields — `/text/regex/extract`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `text` | string | ✅ | The input text to search |
+| `pattern` | string | ✅ | The regex pattern |
+| `return_array` | boolean | ✅ | `true` = all matches as array, `false` = first match as string (or `null`) |
+| `case_insensitive` | boolean | — | Default `false` |
+| `multiline` | boolean | — | Default `false` |
+
+#### Example — Extract (all matches)
+
+```http
+POST /text/regex/extract
+Content-Type: application/json
+
+{
+  "text": "Call me at 0712 345 678 or email jay@example.com",
+  "pattern": "\\+?[0-9][\\d\\s\\-\\(\\)]{5,}[0-9]",
+  "return_array": true
+}
+```
+
+**Response:**
+```json
+{
+  "matched": true,
+  "result": ["0712 345 678"],
+  "match_count": 1,
+  "pattern": "\\+?[0-9][\\d\\s\\-\\(\\)]{5,}[0-9]"
+}
+```
+
+---
+
+#### Request fields — `/text/regex/replace`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `text` | string | ✅ | The input text to process |
+| `pattern` | string | ✅ | The regex pattern identifying what to replace |
+| `replacement` | string | — | Substitution string. Default `""` (removes matches). E.g. `"[REDACTED]"` |
+| `case_insensitive` | boolean | — | Default `false` |
+| `multiline` | boolean | — | Default `false` |
+
+#### Example — Replace (redact phone numbers & emails)
+
+This is the direct solution to blocking contact details in no-code platform chats (e.g. Adalo, Bubble):
+
+```http
+POST /text/regex/replace
+Content-Type: application/json
+
+{
+  "text": "Hi, call me on 0712 345 678 or email jay@example.com to arrange directly.",
+  "pattern": "(\\+?[0-9][\\d\\s\\-\\(\\)]{5,}[0-9]|\\S+@\\S+\\.\\S+)",
+  "replacement": "[REDACTED]",
+  "case_insensitive": true
+}
+```
+
+**Response:**
+```json
+{
+  "result": "Hi, call me on [REDACTED] or email [REDACTED] to arrange directly.",
+  "replacement_count": 2,
+  "original_text": "Hi, call me on 0712 345 678 or email jay@example.com to arrange directly.",
+  "pattern": "(\\+?[0-9][\\d\\s\\-\\(\\)]{5,}[0-9]|\\S+@\\S+\\.\\S+)"
+}
+```
+
+**Notes:**
+- Both endpoints validate the regex pattern and return a `422` with a clear message if it's invalid.
+- Use `return_array: false` on `/extract` as a simple "does this text contain X?" check — `matched` will be `true` or `false`.
+- The combined pattern `(\+?[0-9][\d\s\-\(\)]{5,}[0-9]|\S+@\S+\.\S+)` catches both phone numbers and email addresses in a single call.
+
+---
+
 ### Google Calendar
 
 | Method | Endpoint | Description |
@@ -121,9 +206,11 @@ vibe-api-hub/
 ├── app/
 │   ├── main.py           # FastAPI app, CORS, router registration
 │   ├── routers/
-│   │   └── calendar.py   # /calendar endpoints
+│   │   ├── calendar.py   # /calendar endpoints
+│   │   └── text.py       # /text endpoints
 │   ├── models/
-│   │   └── calendar.py   # Pydantic request/response models
+│   │   ├── calendar.py   # Pydantic request/response models
+│   │   └── text.py       # Pydantic request/response models
 │   └── utils/
 │       └── datetime_utils.py  # Date parsing, UTC conversion, URL builder
 ├── requirements.txt
