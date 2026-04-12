@@ -18,6 +18,162 @@ Interactive docs (Swagger UI): `https://your-deployment.vercel.app/docs`
 
 ## Available Endpoints
 
+### Date & Time
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/datetime/shift` | Add or subtract a duration from a datetime — get end time from start, or start from end |
+| `POST` | `/datetime/diff` | Smart difference between two datetimes with full breakdown and human-readable output |
+| `GET` | `/datetime/now` | Current datetime in any timezone |
+| `POST` | `/datetime/convert` | Convert a datetime between any two IANA timezones |
+| `POST` | `/datetime/format` | Reformat a datetime string — ISO, human-readable, relative ("3 days ago"), or custom |
+
+#### `/datetime/shift`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `datetime` | string | ✅ | The starting (or ending) datetime |
+| `direction` | `"add"` \| `"subtract"` | ✅ | Move forward or backward in time |
+| `amount` | integer | ✅ | Quantity to shift (must be > 0) |
+| `unit` | string | ✅ | `"seconds"` `"minutes"` `"hours"` `"days"` `"weeks"` `"months"` `"years"` |
+| `timezone` | string | — | IANA timezone. Default `"UTC"` |
+
+```http
+POST /datetime/shift
+Content-Type: application/json
+
+{ "datetime": "2026-03-15T14:00:00", "direction": "add", "amount": 30, "unit": "minutes", "timezone": "Africa/Nairobi" }
+```
+
+```json
+{
+  "result_iso": "2026-03-15T14:30:00+03:00",
+  "result_date": "2026-03-15",
+  "result_time": "14:30:00",
+  "result_human": "March 15, 2026 at 2:30 PM",
+  "original_iso": "2026-03-15T11:00:00+00:00",
+  "timezone": "Africa/Nairobi"
+}
+```
+
+> Use `direction: "subtract"` to reverse the operation — e.g. given an end time, get the start time.
+
+---
+
+#### `/datetime/diff`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `start` | string | ✅ | The earlier datetime |
+| `end` | string | ✅ | The later datetime |
+| `timezone` | string | — | IANA timezone. Default `"UTC"` |
+
+```http
+POST /datetime/diff
+Content-Type: application/json
+
+{ "start": "2026-03-15T08:00:00", "end": "2026-03-17T14:05:30", "timezone": "UTC" }
+```
+
+```json
+{
+  "human_readable": "2 days, 6 hours, 5 minutes, 30 seconds",
+  "breakdown": { "years": 0, "months": 0, "days": 2, "hours": 6, "minutes": 5, "seconds": 30 },
+  "total_seconds": 194730.0,
+  "total_minutes": 3245.5,
+  "total_hours": 54.09,
+  "total_days": 2.25,
+  "is_negative": false,
+  "start_iso": "2026-03-15T08:00:00+00:00",
+  "end_iso": "2026-03-17T14:05:30+00:00"
+}
+```
+
+> `is_negative: true` when `end` is before `start` — useful for detecting expired bookings or overdue tasks.
+
+---
+
+#### `/datetime/now`
+
+```http
+GET /datetime/now?timezone=Africa/Nairobi
+```
+
+```json
+{
+  "iso": "2026-04-12T14:30:48+03:00",
+  "date": "2026-04-12",
+  "time": "14:30:48",
+  "human": "April 12, 2026 at 2:30 PM",
+  "unix_timestamp": 1744457448,
+  "timezone": "Africa/Nairobi"
+}
+```
+
+---
+
+#### `/datetime/convert`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `datetime` | string | ✅ | Datetime to convert |
+| `from_timezone` | string | ✅ | Source IANA timezone |
+| `to_timezone` | string | ✅ | Target IANA timezone |
+
+```http
+POST /datetime/convert
+Content-Type: application/json
+
+{ "datetime": "2026-03-15T14:00:00", "from_timezone": "Africa/Nairobi", "to_timezone": "America/New_York" }
+```
+
+```json
+{
+  "result_iso": "2026-03-15T07:00:00-04:00",
+  "result_date": "2026-03-15",
+  "result_time": "07:00:00",
+  "result_human": "March 15, 2026 at 7:00 AM",
+  "from_timezone": "Africa/Nairobi",
+  "to_timezone": "America/New_York",
+  "original_iso": "2026-03-15T11:00:00+00:00"
+}
+```
+
+---
+
+#### `/datetime/format`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `datetime` | string | ✅ | The datetime to format |
+| `output_format` | string | ✅ | `"iso"` `"date_only"` `"time_only"` `"human"` `"human_date"` `"human_time"` `"relative"` `"custom"` |
+| `custom_format` | string | — | Required only when `output_format` is `"custom"`. Python strftime string e.g. `"%d/%m/%Y"` |
+| `timezone` | string | — | IANA timezone. Default `"UTC"` |
+
+| `output_format` value | Example output |
+|-----------------------|----------------|
+| `iso` | `2026-03-15T14:00:00+03:00` |
+| `date_only` | `2026-03-15` |
+| `time_only` | `14:00:00` |
+| `human` | `March 15, 2026 at 2:00 PM` |
+| `human_date` | `March 15, 2026` |
+| `human_time` | `2:00 PM` |
+| `relative` | `3 days ago` / `in 2 hours` / `just now` |
+| `custom` | Any strftime string, e.g. `%d/%m/%Y` → `15/03/2026` |
+
+```http
+POST /datetime/format
+Content-Type: application/json
+
+{ "datetime": "2024-01-01T00:00:00", "output_format": "relative", "timezone": "UTC" }
+```
+
+```json
+{ "result": "2 years ago", "output_format": "relative", "timezone": "UTC" }
+```
+
+---
+
 ### Text Utilities
 
 | Method | Endpoint | Description |
@@ -202,17 +358,19 @@ Then open `http://localhost:8000/docs` for the interactive Swagger UI.
 ```
 vibe-api-hub/
 ├── api/
-│   └── index.py          # Vercel serverless entry point (Mangum adapter)
+│   └── index.py              # Vercel serverless entry point (Mangum adapter)
 ├── app/
-│   ├── main.py           # FastAPI app, CORS, router registration
+│   ├── main.py               # FastAPI app, CORS, router registration
 │   ├── routers/
-│   │   ├── calendar.py   # /calendar endpoints
-│   │   └── text.py       # /text endpoints
+│   │   ├── calendar.py       # /calendar endpoints
+│   │   ├── text.py           # /text endpoints
+│   │   └── datetime_ops.py   # /datetime endpoints
 │   ├── models/
-│   │   ├── calendar.py   # Pydantic request/response models
-│   │   └── text.py       # Pydantic request/response models
+│   │   ├── calendar.py       # Pydantic request/response models
+│   │   ├── text.py           # Pydantic request/response models
+│   │   └── datetime_ops.py   # Pydantic request/response models
 │   └── utils/
-│       └── datetime_utils.py  # Date parsing, UTC conversion, URL builder
+│       └── datetime_utils.py # Date parsing, UTC conversion, URL builder
 ├── requirements.txt
 ├── vercel.json
 └── README.md
