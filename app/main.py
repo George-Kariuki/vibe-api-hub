@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import calendar, text, datetime_ops
+from app.routers import calendar, text, datetime_ops, lists
 
 app = FastAPI(
     title="Vibe API Hub",
@@ -34,6 +34,7 @@ app.add_middleware(
 app.include_router(calendar.router)
 app.include_router(text.router)
 app.include_router(datetime_ops.router)
+app.include_router(lists.router)
 
 
 @app.get("/", tags=["Health"], summary="Health check")

@@ -181,6 +181,78 @@ Content-Type: application/json
 | `POST` | `/text/regex/extract` | Extract regex matches from a string — returns first match or all matches as array |
 | `POST` | `/text/regex/replace` | Replace / redact regex matches in a string with a substitution |
 
+---
+
+### List Utilities
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/lists/random-pick` | Pick N random items from a list in one call (unique by default, optional duplicates) |
+
+#### Request fields — `/lists/random-pick`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `items` | array of strings | ✅ | List of IDs/items to pick from |
+| `count` | integer | ✅ | Number of picks you want (must be > 0) |
+| `allow_duplicates` | boolean | — | Default `false`. If `true`, picks may repeat |
+| `seed` | integer | — | Optional seed for deterministic output |
+
+**Behavior:**
+- If `allow_duplicates` is `false` and `count >= items.length`, the API returns **all items** in randomized order.
+- If `allow_duplicates` is `true`, `count` can exceed the number of items and picks may repeat.
+
+#### Example — Unique picks (no duplicates)
+
+```http
+POST /lists/random-pick
+Content-Type: application/json
+
+{
+  "items": ["rec_1", "rec_2", "rec_3", "rec_4", "rec_5"],
+  "count": 3,
+  "allow_duplicates": false,
+  "seed": 42
+}
+```
+
+**Response:**
+```json
+{
+  "picks": ["rec_2", "rec_5", "rec_1"],
+  "count_requested": 3,
+  "count_returned": 3,
+  "input_size": 5,
+  "allow_duplicates": false,
+  "seed": 42
+}
+```
+
+#### Example — Allow duplicates
+
+```http
+POST /lists/random-pick
+Content-Type: application/json
+
+{
+  "items": ["rec_1", "rec_2", "rec_3"],
+  "count": 5,
+  "allow_duplicates": true
+}
+```
+
+**Response:**
+```json
+{
+  "picks": ["rec_2", "rec_2", "rec_1", "rec_3", "rec_2"],
+  "count_requested": 5,
+  "count_returned": 5,
+  "input_size": 3,
+  "allow_duplicates": true,
+  "seed": null
+}
+```
+
 #### Request fields — `/text/regex/extract`
 
 | Field | Type | Required | Description |
@@ -363,10 +435,12 @@ vibe-api-hub/
 │   ├── main.py               # FastAPI app, CORS, router registration
 │   ├── routers/
 │   │   ├── calendar.py       # /calendar endpoints
+│   │   ├── lists.py          # /lists endpoints
 │   │   ├── text.py           # /text endpoints
 │   │   └── datetime_ops.py   # /datetime endpoints
 │   ├── models/
 │   │   ├── calendar.py       # Pydantic request/response models
+│   │   ├── lists.py          # Pydantic request/response models
 │   │   ├── text.py           # Pydantic request/response models
 │   │   └── datetime_ops.py   # Pydantic request/response models
 │   └── utils/
