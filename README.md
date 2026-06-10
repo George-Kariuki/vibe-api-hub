@@ -10,9 +10,9 @@ Built with **Python + FastAPI**, hosted on **Vercel**.
 
 ## Live API
 
-> Coming soon — deploy URL will be listed here after first Vercel deployment.
+Base URL: `https://vibe-api-hub.vercel.app`
 
-Interactive docs (Swagger UI): `https://your-deployment.vercel.app/docs`
+Interactive docs (Swagger UI): [`https://vibe-api-hub.vercel.app/docs`](https://vibe-api-hub.vercel.app/docs)
 
 ---
 
@@ -253,6 +253,63 @@ Content-Type: application/json
 }
 ```
 
+---
+
+### File Utilities
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/files/convert-to-json` | Upload a CSV or Excel (.xlsx) file and get its contents back as JSON rows |
+
+This endpoint accepts `multipart/form-data` (a file upload), not JSON. Send the file under the field name `file`. The first row is treated as the column header by default, and each subsequent row becomes one JSON object.
+
+#### Form fields — `/files/convert-to-json`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file` | file | ✅ | The `.csv` or `.xlsx` file to convert |
+| `has_header` | boolean | — | Treat first row as column names. Default `true`. If `false`, keys are `column_1`, `column_2`, ... |
+| `delimiter` | string | — | CSV delimiter character. Ignored for Excel. Default `","` |
+| `sheet_index` | integer | — | Excel sheet index (0-based). Ignored for CSV. Default `0` |
+| `skip_empty_rows` | boolean | — | Drop fully empty rows. Default `true` |
+| `max_rows` | integer | — | Maximum number of data rows allowed. Default `10000` |
+
+#### Example — Convert a CSV
+
+```bash
+curl -X POST https://vibe-api-hub.vercel.app/files/convert-to-json \
+  -F "file=@users.csv" \
+  -F "has_header=true"
+```
+
+**Response:**
+```json
+{
+  "rows": [
+    { "Name": "Alice", "Email": "alice@example.com", "Age": "30" },
+    { "Name": "Bob", "Email": "bob@example.com", "Age": "25" }
+  ],
+  "row_count": 2,
+  "columns": ["Name", "Email", "Age"],
+  "filename": "users.csv",
+  "file_type": "csv"
+}
+```
+
+#### Example — Convert an Excel sheet
+
+```bash
+curl -X POST https://vibe-api-hub.vercel.app/files/convert-to-json \
+  -F "file=@report.xlsx" \
+  -F "sheet_index=0"
+```
+
+**Notes:**
+- Only `.csv` and `.xlsx` are supported. Other file types return a `422` with a clear message.
+- Uploads are subject to the host's request body limit (~4.5MB on Vercel). Keep files small/medium for reliable serverless performance.
+- The `max_rows` cap (default 10,000) protects against serverless timeouts and memory limits; exceeding it returns a `422`.
+- For no-code platforms: use a file upload / custom API action that sends `multipart/form-data` with the `file` field, then map the returned `rows` array to your database records.
+
 #### Request fields — `/text/regex/extract`
 
 | Field | Type | Required | Description |
@@ -437,14 +494,17 @@ vibe-api-hub/
 │   │   ├── calendar.py       # /calendar endpoints
 │   │   ├── lists.py          # /lists endpoints
 │   │   ├── text.py           # /text endpoints
-│   │   └── datetime_ops.py   # /datetime endpoints
+│   │   ├── datetime_ops.py   # /datetime endpoints
+│   │   └── files.py          # /files endpoints
 │   ├── models/
 │   │   ├── calendar.py       # Pydantic request/response models
 │   │   ├── lists.py          # Pydantic request/response models
 │   │   ├── text.py           # Pydantic request/response models
-│   │   └── datetime_ops.py   # Pydantic request/response models
+│   │   ├── datetime_ops.py   # Pydantic request/response models
+│   │   └── files.py          # Pydantic request/response models
 │   └── utils/
-│       └── datetime_utils.py # Date parsing, UTC conversion, URL builder
+│       ├── datetime_utils.py # Date parsing, UTC conversion, URL builder
+│       └── file_parsers.py   # CSV and Excel parsing helpers
 ├── requirements.txt
 ├── vercel.json
 └── README.md
